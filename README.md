@@ -1,5 +1,6 @@
-FlavorFinder - Recipe Recommender
+FlavorFinder - Recipe Recommender 
 FlavorFinder helps users discover recipes based on ingredients they have, reducing food waste and supporting SDG 2: Zero Hunger.
+Link: https://flavofinder.netlify.app/
 
 Features
 Ingredient-based recipe search
