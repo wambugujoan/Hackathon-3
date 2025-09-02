@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlavorFinder - Login</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<main class="container">
+    <section class="login-section">
+        <h2>Login or Register</h2>
+        <div class="input-group">
+            <input type="text" id="login-name" placeholder="Enter your name (optional)">
+            <input type="email" id="login-email" placeholder="Enter your email">
+        </div>
+        <div class="input-group">
+            <button id="login-btn" class="primary-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <button id="register-btn" class="primary-btn"><i class="fas fa-user-plus"></i> Register</button>
+        </div>
+        <p id="login-message"></p>
+    </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const loginMessage = document.getElementById('login-message');
+
+    function handleAuth(endpoint) {
+        const name = document.getElementById('login-name').value.trim() || 'Anonymous';
+        const email = document.getElementById('login-email').value.trim();
+        if (!email) {
+            loginMessage.textContent = 'Please enter your email';
+            return;
+        }
+
+        fetch(`/${endpoint}`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({name, email})
+        })
+        .then(res => res.json())
+        .then(data => {
+            loginMessage.textContent = data.message;
+            if (data.success) {
+                // Redirect to index.html after successful login/register
+                window.location.href = 'index.html';
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    loginBtn.addEventListener('click', () => handleAuth('login'));
+    registerBtn.addEventListener('click', () => handleAuth('register'));
+});
+</script>
+</body>
+</html>

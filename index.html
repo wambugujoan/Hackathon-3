@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlavorFinder - Recipe Recommender</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1><i class="fas fa-utensils"></i> FlavorFinder</h1>
+        <p>Discover delicious recipes from ingredients you have</p>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- Ingredient Selector -->
+    <section class="ingredient-selector">
+        <h2>What ingredients do you have?</h2>
+        <div class="input-group">
+            <input type="text" id="ingredient-input" placeholder="Add ingredients (e.g., chicken, tomatoes)">
+            <button id="add-ingredient"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div class="selected-ingredients">
+            <h3>Your Ingredients:</h3>
+            <div id="ingredient-list"></div>
+        </div>
+        <button id="find-recipes" class="primary-btn">Find Recipes</button>
+    </section>
+
+    <!-- Recipe Results -->
+    <section class="results-section">
+        <h2>Recommended Recipes</h2>
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Finding the perfect recipes for you...</p>
+        </div>
+        <div id="recipe-results" class="recipe-grid"></div>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>Created for Vibe Coding Hackathon | Supporting SDG 2: Zero Hunger</p>
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ingredientInput = document.getElementById('ingredient-input');
+    const addIngredientBtn = document.getElementById('add-ingredient');
+    const ingredientList = document.getElementById('ingredient-list');
+    const findRecipesBtn = document.getElementById('find-recipes');
+    const recipeResults = document.getElementById('recipe-results');
+    const loading = document.getElementById('loading');
+
+    let selectedIngredients = [];
+
+    // ------------------ Ingredient Handling ------------------
+    function updateIngredientList() {
+        ingredientList.innerHTML = '';
+        selectedIngredients.forEach(ingredient => {
+            const chip = document.createElement('div');
+            chip.className = 'ingredient-chip';
+            chip.innerHTML = `${ingredient} <i class="fas fa-times"></i>`;
+            ingredientList.appendChild(chip);
+            chip.querySelector('i').addEventListener('click', () => {
+                selectedIngredients = selectedIngredients.filter(i => i !== ingredient);
+                updateIngredientList();
+            });
+        });
+    }
+
+    addIngredientBtn.addEventListener('click', () => {
+        const ingredient = ingredientInput.value.trim();
+        if (ingredient && !selectedIngredients.includes(ingredient)) {
+            selectedIngredients.push(ingredient);
+            updateIngredientList();
+            ingredientInput.value = '';
+        }
+    });
+
+    ingredientInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') addIngredientBtn.click();
+    });
+
+    // ------------------ Recipe Fetching ------------------
+    findRecipesBtn.addEventListener('click', () => {
+        if (selectedIngredients.length === 0) { 
+            alert('Please add at least one ingredient'); 
+            return; 
+        }
+        loading.classList.remove('hidden');
+        recipeResults.innerHTML = '';
+
+        fetch('/get-recipes', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ingredients:selectedIngredients})
+        })
+        .then(res => res.json())
+        .then(data => {
+            loading.classList.add('hidden');
+            recipeResults.innerHTML = '';
+            if (!data.recipes || data.recipes.length === 0) {
+                recipeResults.innerHTML = '<p>No recipes found. Try different ingredients.</p>';
+                return;
+            }
+
+            data.recipes.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'recipe-card';
+                card.innerHTML = `
+                    <div class="recipe-content">
+                        <h3 class="recipe-title">${recipe.title}</h3>
+                        <p class="recipe-ingredients"><span>Ingredients:</span> ${recipe.ingredients.join(', ')}</p>
+                        <p class="recipe-instructions"><span>Instructions:</span> ${recipe.instructions}</p>
+                    </div>
+                `;
+                recipeResults.appendChild(card);
+            });
+        })
+        .catch(err => {
+            loading.classList.add('hidden');
+            recipeResults.innerHTML = '<p>Sorry, an error occurred while fetching recipes.</p>';
+            console.error(err);
+        });
+    });
+});
+</script>
+</body>
+</html>
